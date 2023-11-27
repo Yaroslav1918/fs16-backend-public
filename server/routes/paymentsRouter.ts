@@ -31,6 +31,12 @@ router.get(
   checkPermission("READ"),
   ctrl.getPayment
 );
-router.delete("/:paymentId", checkAuth, ctrl.removePayment);
+router.delete(
+  "/:paymentId",
+  checkAuth,
+  checkRoles(ROLE.ADMIN),
+  checkPermission("DELETE"),
+  ctrl.removePayment
+);
 
 export default router;

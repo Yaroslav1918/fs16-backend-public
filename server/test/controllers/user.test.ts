@@ -3,7 +3,7 @@ import connect, { MongoHelper } from "../db-helper";
 
 import app from "../../app";
 import UserRepo from "../../models/UserModel";
-import { authenticateUser } from "../auth/authenticateUser";
+import { authenticateUser } from "../utils/authenticateUser";
 
 describe("User controller", () => {
   let mongoHelper: MongoHelper;

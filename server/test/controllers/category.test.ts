@@ -3,7 +3,7 @@ import request from "supertest";
 import CategoryRepo from "../../models/CategoryModel";
 import connect, { MongoHelper } from "../db-helper";
 import app from "../../app";
-import { authenticateUser } from "../auth/authenticateUser";
+import { authenticateUser } from "../utils/authenticateUser";
 
 describe("Categories Controller", () => {
   let mongoHelper: MongoHelper;

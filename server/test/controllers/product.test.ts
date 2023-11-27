@@ -5,9 +5,9 @@ import CategoryRepo from "../../models/CategoryModel";
 
 import connect, { MongoHelper } from "../db-helper";
 import app from "../../app";
-import { CreateProductInput, ProductDocument } from "Product";
-import { Category } from "Category";
-import { authenticateUser } from "../auth/authenticateUser";
+import { CreateProductInput, ProductDocument } from "../../types/Product";
+import { Category } from "../../types/Category";
+import { authenticateUser } from "../utils/authenticateUser";
 
 describe("Product controller", () => {
   let mongoHelper: MongoHelper;

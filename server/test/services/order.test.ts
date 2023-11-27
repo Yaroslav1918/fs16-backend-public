@@ -1,15 +1,13 @@
 import connect, { MongoHelper } from "../db-helper";
 
-import { CreateUserInput, User } from "User";
-import { ProductDocument } from "Product";
+import { CreateUserInput } from "User";
 import { newOrderData } from "Order";
 import usersService from "../../services/usersService";
 import orderService from "../../services/ordersService";
-import productsService from "../../services/productsService";
 import ProductRepo from "../../models/ProductModel";
 import CategoryRepo from "../../models/CategoryModel";
 
-export async function createOrder() {
+export async function createOrder(returbodyOrder?: boolean): Promise<any> {
   const bodyUser: CreateUserInput = {
     name: "Alan",
     email: "alan@gmail.com",
@@ -48,13 +46,15 @@ export async function createOrder() {
     ],
   };
 
+  if (returbodyOrder) {
+    return await bodyOrder;
+  }
+
   return await orderService.createOrder(bodyOrder);
 }
 
 describe("Order Service", () => {
   let mongoHelper: MongoHelper;
-  let productOne: ProductDocument;
-  let user: User;
 
   beforeAll(async () => {
     mongoHelper = await connect();
@@ -91,5 +91,12 @@ describe("Order Service", () => {
     expect(singleOrder).toHaveProperty("userId");
     expect(singleOrder?.paymentStatus).toBe("pending");
     expect(singleOrder?.totalAmount).toBe(369);
+  });
+
+  it("should delete  order", async () => {
+    const order = await createOrder();
+    await orderService.removeOrder(String(order?._id));
+    const orders = await orderService.getOrders();
+    expect(orders.length).toEqual(0);
   });
 });

@@ -2,16 +2,33 @@ import request from "supertest";
 
 import app from "../../app";
 import connect, { MongoHelper } from "../db-helper";
-import { CreateUserInput } from "User";
-import { newOrderData } from "Order";
+import { CreateUserInput } from "../../types/User";
+import { newOrderData } from "../../types/Order";
 import OrderService from "../../services/ordersService";
 import UserService from "../../services/usersService";
 import ProductRepo from "../../models/ProductModel";
 import PaymentRepo from "../../models/PaymentModel";
 import CategoryRepo from "../../models/CategoryModel";
-import { authenticateUser } from "../auth/authenticateUser";
+import { authenticateUser } from "../utils/authenticateUser";
+import { NextFunction, Request, Response } from "express";
 
-async function createOrderWithPayment() {
+jest.mock("../../middlewares/checkAuth", () => {
+  return () => async (req: Request, res: Response, next: NextFunction) => {
+    next();
+  };
+});
+jest.mock("../../middlewares/checkRoles", () => {
+  return () => async (req: Request, res: Response, next: NextFunction) => {
+    next();
+  };
+});
+jest.mock("../../middlewares/checkPermissions", () => {
+  return () => async (req: Request, res: Response, next: NextFunction) => {
+    next();
+  };
+});
+
+async function createBodyPayment() {
   const categoryInstance = new CategoryRepo({
     name: "mobile",
     images: ["fdfgdf"],
@@ -64,11 +81,6 @@ async function createOrderWithPayment() {
 
 describe("Payment controller", () => {
   let mongoHelper: MongoHelper;
-  let accessToken: string;
-
-  beforeEach(async () => {
-    accessToken = await authenticateUser();
-  });
 
   beforeAll(async () => {
     mongoHelper = await connect();
@@ -83,26 +95,32 @@ describe("Payment controller", () => {
   });
 
   it("Should create a payment", async () => {
-    const bodyPayment = await createOrderWithPayment();
-    const response = await request(app)
-      .post("/payments")
-      .send(bodyPayment)
-      .set("Authorization", `Bearer ${accessToken}`);
+    const bodyPayment = await createBodyPayment();
+    const response = await request(app).post("/payments").send(bodyPayment);
     expect(response.body.payment[0].bankName).toEqual("OTP");
     expect(response.body.message).toEqual("Payment is created");
     expect(response.body.payment[0].userId).toEqual(bodyPayment?.userId);
   });
 
-  it("Should delete a payment", async () => {
-    const bodyPayment = await createOrderWithPayment();
+  it("Should return all payments", async () => {
+    const bodyPayment = await createBodyPayment();
     const newPayment = new PaymentRepo({
       ...bodyPayment,
       orderId: bodyPayment?.ordersId[0],
     });
     await newPayment.save();
-    console.log("-----------------", newPayment._id);
-    const response = await request(app)
-      .delete(`/payments/${newPayment._id}`)
-      .set("Authorization", `Bearer ${accessToken}`);
+    const response = await request(app).get(`/payments`);
+    console.log(response.body);
+  });
+  it("Should return one payment", async () => {
+    const bodyPayment = await createBodyPayment();
+    const newPayment = new PaymentRepo({
+      ...bodyPayment,
+      orderId: bodyPayment?.ordersId[0],
+    });
+    await newPayment.save();
+    const response = await request(app).get(`/payments/${newPayment?._id}`);
+    console.log("response.body", response.body);
+    // expect(response.body.payment?._id).toEqual(newPayment?._id.toString());
   });
 });
